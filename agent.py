@@ -1,6 +1,5 @@
 import ollama
 import prompt
-import message_history_txt
 
 def chat_with_llama():
 
@@ -10,7 +9,7 @@ def chat_with_llama():
     messages.append({"role": "user", "content": prompt.tutor_guideline})
     messages.append({"role": "user", "content": prompt.teaching_quiz})
     messages.append({"role": "user", "content": prompt.Progress})
-    messages.append({"role": "user", "content": message_history_txt.message_history})
+    #messages.append({"role": "user", "content": message_history_txt.message_history})
 
 
     while True:
@@ -23,7 +22,7 @@ def chat_with_llama():
             
             messages.append({"role": "user", "content": user_input})  # 儲存使用者輸入
             
-            response = ollama.chat(model='llama3.1', messages=messages)  # 向 Llama 3.1  發送請求
+            response = ollama.chat(model='llama3.1:latest', messages=messages)  # 向 Llama 3.1  發送請求
             
             bot_reply = response.get('message', {}).get('content', '⚠️ 無法獲取回應')  # 取得回應內容，並處理可能的錯誤
             
