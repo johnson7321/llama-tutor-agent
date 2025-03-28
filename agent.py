@@ -20,6 +20,7 @@ def chat_with_llama():
                 print("🔴 結束對話...\n")
                 break
             
+            print("🤖 Llama: ")
             messages.append({"role": "user", "content": user_input})  # 儲存使用者輸入
             
             response = ollama.chat(model='llama3.1:latest', messages=messages)  # 向 Llama 3.1  發送請求
@@ -29,7 +30,7 @@ def chat_with_llama():
             messages.append({"role": "assistant", "content": bot_reply})  # 儲存 AI 的回應
             
             
-            print("🤖 Llama: "+bot_reply)  # 顯示 AI 的回應
+            print(bot_reply)  # 顯示 AI 的回應
 
         
         except Exception as e:
