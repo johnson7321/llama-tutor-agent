@@ -13,7 +13,7 @@ def chat_with_llama():
     
     with open("message _history.txt", "r", encoding="utf-8") as file:
         history = file.read()
-        print(type(history))
+        
     messages.append({"role": "user", "content": history})
 
     while True:
