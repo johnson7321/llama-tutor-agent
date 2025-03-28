@@ -1,6 +1,6 @@
 import ollama
 import prompt
-#import message_history_txt
+
 
 def chat_with_llama():
 
@@ -10,8 +10,11 @@ def chat_with_llama():
     messages.append({"role": "user", "content": prompt.tutor_guideline})
     messages.append({"role": "user", "content": prompt.teaching_quiz})
     messages.append({"role": "user", "content": prompt.Progress})
-    #messages.append({"role": "user", "content": message_history_txt.message_history})
-
+    
+    with open("message _history.txt", "r", encoding="utf-8") as file:
+        history = file.read()
+        print(type(history))
+    messages.append({"role": "user", "content": history})
 
     while True:
         try:
