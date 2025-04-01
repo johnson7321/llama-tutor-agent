@@ -11,7 +11,7 @@ def chat_with_llama():
     messages.append({"role": "user", "content": prompt.Progress})
     
     # 讀取之前儲存的對話歷史，並加入到 messages 清單中
-    with open("message_history.txt", "r", encoding="utf-8") as file:
+    with open("C:\Python\llama-tutor-agent\message_history.txt", "r", encoding="utf-8") as file:
         history = file.read()  # 讀取檔案內容
         
     messages.append({"role": "user", "content": history})  # 把讀取的歷史對話加入
@@ -20,6 +20,10 @@ def chat_with_llama():
         try:
             # 接收使用者的輸入
             user_input = input("👤 你: ")
+
+            if not (user_input):
+                print("你沒有輸入任何內容")
+                continue ;
             
             # 若使用者輸入 'exit'，則結束對話
             if user_input.lower() == "exit":
