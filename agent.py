@@ -14,7 +14,7 @@ def chat_with_llama():
     with open("C:\Python\llama-tutor-agent\message_history.txt", "r", encoding="utf-8") as file:
         history = file.read()  # 讀取檔案內容
         
-    messages.append({"role": "user", "content": history})  # 把讀取的歷史對話加入
+    messages.append({"role": "user", "content": "以下為我們的對話紀錄,讀取並繼續對話"+history})  # 把讀取的歷史對話加入
 
     while True:  # 持續進行對話，直到使用者結束
         try:
