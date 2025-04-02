@@ -1,6 +1,5 @@
 import ollama  # 載入 ollama 模組，與 Llama AI 進行互動
 import prompt  # 載入 prompt 模組，用來儲存教學指引、測驗問題等內容
-import markdown
 
 def chat_with_llama():
     # 用來儲存對話歷史，以便保持上下文
@@ -46,8 +45,7 @@ def chat_with_llama():
             messages.append({"role": "assistant", "content": bot_reply})
             
             # 顯示 AI 的回應
-            #print(bot_reply)
-            print(markdown.markdown(bot_reply))
+            print(bot_reply)
 
         except Exception as e:
             # 捕捉並顯示錯誤訊息
