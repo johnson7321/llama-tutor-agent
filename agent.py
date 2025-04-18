@@ -6,12 +6,12 @@ def chat_with_llama():
     messages = []  
     
     # 加入初始的對話訊息，包含指引、測驗問題、進度等
-    messages.append({"role": "user", "content": prompt.tutor_guideline})
-    messages.append({"role": "user", "content": prompt.teaching_quiz})
-    messages.append({"role": "user", "content": prompt.Progress})
+    init_prompt = prompt.tutor_guideline + prompt.teaching_quiz + prompt.Progress
+    messages.append({"role": "user", "content": init_prompt})
+
     
     # 讀取之前儲存的對話歷史，並加入到 messages 清單中
-    with open("C:\Python\llama-tutor-agent\message_history.txt", "r", encoding="utf-8") as file:
+    with open("message_history.txt", "r", encoding="utf-8") as file:
         history = file.read()  # 讀取檔案內容
         
     messages.append({"role": "user", "content": "以下為我們的對話紀錄,讀取並繼續對話"+history})  # 把讀取的歷史對話加入
@@ -47,10 +47,13 @@ def chat_with_llama():
             # 顯示 AI 的回應
             print(bot_reply)
 
+            with open("message_history.txt", "w", encoding="utf-8") as file: 
+                file.write(f"👤 你: {user_input}\n")
+                file.write(f"🤖 Llama: {bot_reply}\n")
+            
         except Exception as e:
             # 捕捉並顯示錯誤訊息
             print(f"⚠️ 發生錯誤: {e}\n")
 
 # 主程式，執行與 Llama 的對話
-if __name__ == "__main__":
-    chat_with_llama()  # 呼叫對話函式
+chat_with_llama()  # 呼叫對話函式
