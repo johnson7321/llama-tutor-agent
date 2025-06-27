@@ -6,7 +6,7 @@ def chat_with_llama():
     messages = []  
     
     # 加入初始的對話訊息，包含指引、測驗問題、進度等
-    init_prompt = prompt.tutor_guideline + prompt.teaching_quiz + prompt.Progress
+    init_prompt = prompt.tutor_guideline
     messages.append({"role": "user", "content": init_prompt})
 
     
@@ -47,7 +47,7 @@ def chat_with_llama():
             # 顯示 AI 的回應
             print(bot_reply)
 
-            with open("message_history.txt", "w", encoding="utf-8") as file: 
+            with open("message_history.txt", "a", encoding="utf-8") as file: 
                 file.write(f"👤 你: {user_input}\n")
                 file.write(f"🤖 Llama: {bot_reply}\n")
             
