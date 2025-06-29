@@ -66,8 +66,18 @@ except (NoTranscriptFound, TranscriptsDisabled):
     print("⚠️ 沒有原字幕，改用 Whisper 處理")
 
 # ✅ 音檔檢查與下載
+# 1. 取得目前程式所在的資料夾路徑（專案根目錄）
+SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
+
+# 2. 定義放 mp3 的資料夾路徑，放在專案資料夾底下
+mp3_folder = Path(SCRIPT_DIR) / "mp3_files"
+
+# 3. 確保資料夾存在，不存在就建立
+mp3_folder.mkdir(parents=True, exist_ok=True)
+
+# 4. 影片標題和檔名
 audio_filename = f"{video_title}.mp3"
-audio_path = Path(audio_filename)
+audio_path = mp3_folder / audio_filename
 
 if not audio_path.exists():
     print("🎧 下載音訊中...")
@@ -75,7 +85,7 @@ if not audio_path.exists():
         "yt-dlp", "-x", "--audio-format", "mp3",
         "--no-overwrites",
         f"--ffmpeg-location=C:\\ffmpeg-7.1.1-full_build\\ffmpeg-7.1.1-full_build\\bin",
-        "-o", "%(title)s.%(ext)s",
+        "-o", str(mp3_folder / "%(title)s.%(ext)s"),
         url
     ], capture_output=True, text=True)
 
@@ -101,13 +111,24 @@ result = model.transcribe(str(audio_path))#出錯
 #     ms = int((seconds - int(seconds)) * 1000)
 #     return f"{h:02}:{m:02}:{s:02},{ms:03}"
 
-srt_path = audio_path.with_suffix(".srt")
+# 1. 取得專案根目錄（假設和你前面一樣）
+SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
+
+# 2. 定義字幕資料夾
+subtitle_folder = Path(SCRIPT_DIR) / "subtitles"
+subtitle_folder.mkdir(parents=True, exist_ok=True)  # 確保存在
+
+# 3. 產生字幕檔完整路徑，副檔名改成 .srt
+srt_path = subtitle_folder / audio_path.with_suffix(".srt").name
+
+print(srt_path)
+
+# 4. 寫入字幕檔案
 with open(srt_path, "w", encoding="utf-8") as f:
     for i, seg in enumerate(result["segments"], start=1):
         # start = format_timestamp(seg["start"])
         # end = format_timestamp(seg["end"])
         text = cc.convert(seg["text"].strip())
-        #f.write(f"{i}\n{start} --> {end}\n{text}\n\n")
-        f.write(text+"\n")
-
+        # f.write(f"{i}\n{start} --> {end}\n{text}\n\n")
+        f.write(text + "\n")
 print(f"✅ Whisper 完成！字幕儲存為：{srt_path.name}")
