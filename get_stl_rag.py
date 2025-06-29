@@ -119,15 +119,14 @@ def chat_with_ollama(prompt):
         return f"❌ 發生錯誤：{e}"
 
 # ------------------ 主程式 ------------------
-if __name__ == "__main__":
-    print("🎥 字幕系統已啟動，輸入 quit,exit,bye 離開")
+print("🎥 字幕系統已啟動，輸入 quit,exit,bye 離開")
 
-    while True:
-        user_input = input("你：").strip()
-        if user_input.lower() in ["quit", "exit", "bye"]:
-            print("👋 再見，祝學習愉快！")
-            break
-        if not user_input:
-            continue
-        response = chat_with_ollama(user_input)
-        print("家教老師：", response)
+while True:
+    user_input = input("你：").strip()
+    if user_input.lower() in ["quit", "exit", "bye"]:
+        print("👋 再見，祝學習愉快！")
+        break
+    if not user_input:
+        continue
+    response = chat_with_ollama(user_input)
+    print("家教老師：", response)
