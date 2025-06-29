@@ -34,3 +34,5 @@ def rag(user_input,messages,srt_content):
     rag_prompt = f"""以下是影片字幕內容摘要，請根據這些內容來回答問題：\n\n{context_text}\n\n使用者問題：{user_input}\n請用繁體中文詳細解釋，並舉例子說明。"""
 
     messages.append({"role": "user", "content": rag_prompt})
+    
+    print(rag_prompt)

@@ -4,12 +4,8 @@ import os
 from pathlib import Path
 import os
 import sys
-import re
-import subprocess
 from pathlib import Path
-import whisper
 from opencc import OpenCC
-from youtube_transcript_api import YouTubeTranscriptApi, NoTranscriptFound, TranscriptsDisabled
 import prompt
 import conversation
 # -*- coding: utf-8 -*-
@@ -19,7 +15,7 @@ cc = OpenCC('s2t')
 os.chdir(os.path.dirname(os.path.abspath(sys.argv[0])))
 
 #url = input("請輸入 YouTube 影片網址：").strip()
-url = "https://www.youtube.com/watch?v=yWxsl48iGeo"
+url = "https://www.youtube.com/watch?v=BfNgCs9KnXE"
 video_id = get_stl.extract_youtube_id(url)
 
 if not video_id:
@@ -57,6 +53,7 @@ if not srt_content:
     else:
         print(f"❌ 找不到檔案：{subtitles}")
 
+messages = []
 messages = [{"role": "system", "content": prompt.tutor_guideline}]
 MODEL_NAME = 'llama3.1:latest'
 
