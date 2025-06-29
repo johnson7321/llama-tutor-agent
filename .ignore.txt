@@ -1,3 +1,8 @@
 message_history.txt
 openai家教.py
 __pycache__/
+yt_db/
+chat_log_2025-06-27.xlsx
+.env
+.srt
+.mp3

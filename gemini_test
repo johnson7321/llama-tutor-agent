@@ -1,0 +1,16 @@
+from dotenv import load_dotenv
+import os
+
+load_dotenv()  # 自動讀取當前目錄下的 .env 檔
+
+api_key = os.getenv('GEMINI_API_KEY')
+
+from google import genai
+
+# The client gets the API key from the environment variable `GEMINI_API_KEY`.
+client = genai.Client()
+
+response = client.models.generate_content(
+    model="gemini-2.5-flash", contents="哈囉"
+)
+print(response.text)

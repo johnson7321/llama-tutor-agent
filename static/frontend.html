@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8" />
+  <title>基於 RAG 實現的 Llama 助教功能 (Tailwind 版)</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-blue-600 text-white pt-12">
+
+  <div class="max-w-xl mx-auto px-4 text-left">
+    <h1 class="text-3xl font-bold mb-6">基於 RAG 實現的 Llama 助教功能</h1>
+
+    <!-- 輸入區 + Enter 支援 -->
+    <form id="inputForm" class="mb-6">
+      <label for="inputText" class="block mb-2 text-lg font-medium">請輸入內容：</label>
+      <input
+        id="inputText"
+        type="text"
+        placeholder="輸入一些文字..."
+        class="w-full p-2 rounded text-black"
+      />
+      <!-- 提交按鈕可選擇性點擊 -->
+      <button
+        type="submit"
+        class="mt-4 block bg-yellow-400 text-black font-semibold py-2 px-4 rounded hover:bg-yellow-300"
+      >
+        送出輸入
+      </button>
+    </form>
+
+    <!-- 顯示結果 -->
+    <p id="result" class="text-yellow-200 text-xl min-h-[2rem]"></p>
+  </div>
+
+  <script>
+    // 處理輸入提交（支援按 Enter）
+    document.getElementById('inputForm').addEventListener('submit', function (e) {
+      e.preventDefault(); // 防止表單刷新
+      const userInput = document.getElementById('inputText').value.trim();
+
+      if (!userInput) {
+        alert('請輸入內容後再送出');
+        return;
+      }
+
+      fetch('/api/echo', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ input: userInput })
+      })
+      .then(res => res.json())
+      .then(data => {
+        document.getElementById('result').innerText = data.output;
+        document.getElementById('inputText').value = ''; // 清空輸入框
+      })
+      .catch(() => {
+        alert('傳送失敗');
+      });
+    });
+  </script>
+</body>
+</html>
