@@ -77,14 +77,18 @@ retriever = vectordb.as_retriever()
 messages = [{"role": "system", "content": prompt.tutor_guideline}]
 MODEL_NAME = 'llama3.1:latest'
 
-def save_chat_xlsx(user_msg, bot_reply):
+def save_chat_xlsx(user_msg, bot_reply, folder_path="logs/chat"):
+    # 確保資料夾存在，不存在就建立
+    os.makedirs(folder_path, exist_ok=True)
+
     today_str = datetime.now().strftime("%Y-%m-%d")
     filename = f"chat_log_{today_str}.xlsx"
+    filepath = os.path.join(folder_path, filename)  # 完整路徑
     time_str = datetime.now().strftime("%H:%M:%S")
 
     try:
-        if os.path.exists(filename):
-            wb = load_workbook(filename)
+        if os.path.exists(filepath):
+            wb = load_workbook(filepath)
             ws = wb.active
         else:
             wb = Workbook()
@@ -92,7 +96,7 @@ def save_chat_xlsx(user_msg, bot_reply):
             ws.append(["時間", "使用者", "AI 回覆"])
 
         ws.append([time_str, user_msg, bot_reply])
-        wb.save(filename)
+        wb.save(filepath)
     except PermissionError:
         print("⚠️ Excel 檔案正在開啟中，請關閉後再試")
 
