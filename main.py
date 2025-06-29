@@ -73,4 +73,5 @@ while True:
         continue
     build_vct_db.rag(user_input,messages,str(srt_content))
     response = conversation.chat_with_ollama(user_input,messages,MODEL_NAME)
+    #response = conversation.chat_with_gemini(prompt,messages)
     print("\n🤓家教老師：", response)
