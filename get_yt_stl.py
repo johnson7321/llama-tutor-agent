@@ -42,20 +42,22 @@ try:
         languages=['zh-TW', 'zh-Hant', 'zh-Hans', 'zh', 'en']
     )
 
-    def format_time(t):
-        h = int(t // 3600)
-        m = int((t % 3600) // 60)
-        s = int(t % 60)
-        ms = int((t - int(t)) * 1000)
-        return f"{h:02}:{m:02}:{s:02},{ms:03}"
+    # def format_time(t):
+    #     h = int(t // 3600)
+    #     m = int((t % 3600) // 60)
+    #     s = int(t % 60)
+    #     ms = int((t - int(t)) * 1000)
+    #     return f"{h:02}:{m:02}:{s:02},{ms:03}"
 
     srt_path = Path(f"{video_title}.srt")
     with open(srt_path, "w", encoding="utf-8") as f:
         for i, entry in enumerate(transcript, start=1):
-            start = format_time(entry["start"])
-            end = format_time(entry["start"] + entry["duration"])
+            # start = format_time(entry["start"])
+            # end = format_time(entry["start"] + entry["duration"])
             text = cc.convert(entry["text"].strip())
-            f.write(f"{i}\n{start} --> {end}\n{text}\n\n")
+            # f.write(f"{i}\n{start} --> {end}\n{text}\n\n")
+            f.write(text+"\n")
+
 
     print(f"✅ 已使用 YouTube 字幕並輸出：{srt_path.name}")
     sys.exit(0)
@@ -92,19 +94,20 @@ print("🧠 使用 Whisper 轉錄中...")
 model = whisper.load_model("base")
 result = model.transcribe(str(audio_path))#出錯
 
-def format_timestamp(seconds: float) -> str:
-    h = int(seconds // 3600)
-    m = int((seconds % 3600) // 60)
-    s = int(seconds % 60)
-    ms = int((seconds - int(seconds)) * 1000)
-    return f"{h:02}:{m:02}:{s:02},{ms:03}"
+# def format_timestamp(seconds: float) -> str:
+#     h = int(seconds // 3600)
+#     m = int((seconds % 3600) // 60)
+#     s = int(seconds % 60)
+#     ms = int((seconds - int(seconds)) * 1000)
+#     return f"{h:02}:{m:02}:{s:02},{ms:03}"
 
 srt_path = audio_path.with_suffix(".srt")
 with open(srt_path, "w", encoding="utf-8") as f:
     for i, seg in enumerate(result["segments"], start=1):
-        start = format_timestamp(seg["start"])
-        end = format_timestamp(seg["end"])
+        # start = format_timestamp(seg["start"])
+        # end = format_timestamp(seg["end"])
         text = cc.convert(seg["text"].strip())
-        f.write(f"{i}\n{start} --> {end}\n{text}\n\n")
+        #f.write(f"{i}\n{start} --> {end}\n{text}\n\n")
+        f.write(text+"\n")
 
 print(f"✅ Whisper 完成！字幕儲存為：{srt_path.name}")
