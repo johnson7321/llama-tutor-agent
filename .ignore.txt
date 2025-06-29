@@ -6,4 +6,6 @@ yt_db/
 .env
 .srt
 .mp3
-D:\llama-tutor-agent\logs/
+logs/
+subtitles/
+mp3_files/

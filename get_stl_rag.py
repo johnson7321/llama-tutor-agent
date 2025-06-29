@@ -1,6 +1,5 @@
 import ollama
 import os
-import json
 from datetime import datetime
 from openpyxl import Workbook, load_workbook
 from langchain.docstore.document import Document
@@ -14,7 +13,6 @@ import prompt
 # ------------------ 設定 ------------------
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 DB_DIR = os.path.join(SCRIPT_DIR, "yt_db")
-#DB_INFO_FILE = os.path.join(DB_DIR, "dbinfo.json")
 
 # ------------------ 輸入影片連結 ------------------
 def extract_youtube_id(url):

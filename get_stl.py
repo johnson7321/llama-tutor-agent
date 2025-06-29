@@ -17,118 +17,171 @@ def extract_youtube_id(url):
     match = re.search(pattern, url)
     return match.group(1) if match else None
 
-url = input("請輸入 YouTube 影片網址：").strip()
-video_id = extract_youtube_id(url)
+def check_and_get_video_id(url: str) -> str:
+    """
+    從 URL 擷取 YouTube 影片 ID，若失敗則印錯誤訊息並退出程式
 
-if not video_id:
-    print("❌ 無法擷取影片 ID")
-    sys.exit(1)
+    Args:
+        url (str): YouTube 影片網址
 
-# # ✅ 嘗試取得影片標題
-try:
-    video_title = subprocess.check_output([
-        "yt-dlp", "--get-filename", "-o", "%(title)s", url
-    ], stderr=subprocess.STDOUT).decode("mbcs", errors="replace").strip()
-    # video_title = "測試影片"
-except subprocess.CalledProcessError:
-    print("❌ 取得影片標題失敗")
-    sys.exit(1)
-
-# ✅ 嘗試擷取 YouTube 字幕
-try:
-    print("📋 嘗試取得 YouTube 原字幕...")
-    transcript = YouTubeTranscriptApi.get_transcript(
-        video_id,
-        languages=['zh-TW', 'zh-Hant', 'zh-Hans', 'zh', 'en']
-    )
-
-    # def format_time(t):
-    #     h = int(t // 3600)
-    #     m = int((t % 3600) // 60)
-    #     s = int(t % 60)
-    #     ms = int((t - int(t)) * 1000)
-    #     return f"{h:02}:{m:02}:{s:02},{ms:03}"
-
-    srt_path = Path(f"{video_title}.srt")
-    with open(srt_path, "w", encoding="utf-8") as f:
-        for i, entry in enumerate(transcript, start=1):
-            # start = format_time(entry["start"])
-            # end = format_time(entry["start"] + entry["duration"])
-            text = cc.convert(entry["text"].strip())
-            # f.write(f"{i}\n{start} --> {end}\n{text}\n\n")
-            f.write(text+"\n")
-
-
-    print(f"✅ 已使用 YouTube 字幕並輸出：{srt_path.name}")
-    sys.exit(0)
-
-except (NoTranscriptFound, TranscriptsDisabled):
-    print("⚠️ 沒有原字幕，改用 Whisper 處理")
-
-# ✅ 音檔檢查與下載
-# 1. 取得目前程式所在的資料夾路徑（專案根目錄）
-SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
-
-# 2. 定義放 mp3 的資料夾路徑，放在專案資料夾底下
-mp3_folder = Path(SCRIPT_DIR) / "mp3_files"
-
-# 3. 確保資料夾存在，不存在就建立
-mp3_folder.mkdir(parents=True, exist_ok=True)
-
-# 4. 影片標題和檔名
-audio_filename = f"{video_title}.mp3"
-audio_path = mp3_folder / audio_filename
-
-if not audio_path.exists():
-    print("🎧 下載音訊中...")
-    result = subprocess.run([
-        "yt-dlp", "-x", "--audio-format", "mp3",
-        "--no-overwrites",
-        f"--ffmpeg-location=C:\\ffmpeg-7.1.1-full_build\\ffmpeg-7.1.1-full_build\\bin",
-        "-o", str(mp3_folder / "%(title)s.%(ext)s"),
-        url
-    ], capture_output=True, text=True)
-
-    if result.returncode != 0:
-        print("❌ yt-dlp 發生錯誤：")
-        print(result.stdout)
-        print(result.stderr)
+    Returns:
+        str: 擷取到的影片 ID
+    """
+    video_id = extract_youtube_id(url)
+    if not video_id:
+        print("❌ 無法擷取影片 ID")
         sys.exit(1)
+    return video_id
+
+def get_video_title(url: str) -> str:
+    """
+    使用 yt-dlp 取得 YouTube 影片標題
+
+    Args:
+        url (str): YouTube 影片網址
+
+    Returns:
+        str: 影片標題（若失敗會中止程式）
+    """
+    try:
+        title = subprocess.check_output([
+            "yt-dlp", "--get-filename", "-o", "%(title)s", url
+        ], stderr=subprocess.STDOUT).decode("mbcs", errors="replace").strip()
+        return title
+    except subprocess.CalledProcessError as e:
+        print("❌ 無法取得影片標題")
+        print(e.output.decode("mbcs", errors="replace"))
+        sys.exit(1)
+        
+# ✅ 嘗試擷取 YouTube 字幕        
+def try_download_youtube_subtitle(video_id: str, cc_converter=None,srt_path: Path = None) -> bool:
+    """
+    嘗試下載 YouTube 原生字幕，儲存為 .srt 檔案
+
+    Args:
+        video_id (str): YouTube 影片 ID
+        video_title (str): 影片標題（用來命名檔案）
+        output_dir (Path): 要儲存字幕的資料夾
+        cc_converter: 轉換簡繁體用的物件（例如 OpenCC），可為 None 表示不轉換
+
+    Returns:
+        bool: 若成功下載字幕並儲存，回傳 True；否則回傳 False
+    """
+    try:
+        print("📋 嘗試取得 YouTube 原字幕...")
+
+        transcript = YouTubeTranscriptApi.get_transcript(
+            video_id,
+            languages=['zh-TW', 'zh-Hant', 'zh-Hans', 'zh', 'en']
+        )
+
+        script_dir = Path(__file__).resolve().parent
+
+        subtitle_folder = script_dir / "subtitles"
+        subtitle_folder.mkdir(parents=True, exist_ok=True)
+        srt_path = subtitle_folder / srt_path
+        
+        with open(srt_path, "w", encoding="utf-8") as f:
+            for i, entry in enumerate(transcript, start=1):
+                text = entry["text"].strip()
+                if cc_converter:
+                    text = cc_converter.convert(text)
+                full_text = f.write(text + "\n")
+
+        print(f"✅ 已使用 YouTube 字幕並輸出：{srt_path.name}")
+        return full_text
+
+    except (NoTranscriptFound, TranscriptsDisabled):
+        print("⚠️ 沒有原字幕，改用 Whisper 處理")
+        return False
+def download_audio_if_needed(video_title: str, url: str, ffmpeg_path: str, output_dir: Path = None) -> Path:
+    """
+    檢查並下載 YouTube 音訊檔（mp3 格式），儲存在指定資料夾
+
+    Args:
+        video_title (str): 音訊檔命名用的標題
+        url (str): YouTube 影片網址
+        ffmpeg_path (str): ffmpeg 可執行檔路徑
+        output_dir (Path, optional): mp3 輸出目錄，預設為專案目錄下的 'mp3_files'
+
+    Returns:
+        Path: 下載後或已存在的 mp3 檔案完整路徑
+    """
+    # 取得專案目錄
+    script_dir = Path(__file__).resolve().parent
+
+    # 設定輸出資料夾
+    mp3_folder = output_dir or (script_dir / "mp3_files")
+    mp3_folder.mkdir(parents=True, exist_ok=True)
+
+    # 設定檔案名稱與路徑
+    audio_filename = f"{video_title}.mp3"
+    audio_path = mp3_folder / audio_filename
+
+    if not audio_path.exists():
+        print("🎧 下載音訊中...")
+        result = subprocess.run([
+            "yt-dlp", "-x", "--audio-format", "mp3",
+            "--no-overwrites",
+            f"--ffmpeg-location={ffmpeg_path}",
+            "-o", str(mp3_folder / "%(title)s.%(ext)s"),
+            url
+        ], capture_output=True, text=True)
+
+        if result.returncode != 0:
+            print("❌ yt-dlp 發生錯誤：")
+            print(result.stdout)
+            print(result.stderr)
+            sys.exit(1)
+        else:
+            print("✅ 音訊下載完成")
     else:
-        print("✅ 音訊下載完成")
-else:
-    print("✅ mp3 已存在")
+        print("✅ mp3 已存在")
 
+    return audio_path
 # ✅ Whisper 辨識
-print("🧠 使用 Whisper 轉錄中...")
-model = whisper.load_model("base")
-result = model.transcribe(str(audio_path))#出錯
+def transcribe_audio_to_srt(audio_path: Path, cc_converter=None, output_dir: Path = None, model_size: str = "base") -> Path:
+    """
+    使用 Whisper 轉錄音訊並輸出為字幕 .srt 檔案（純文字）
 
-# def format_timestamp(seconds: float) -> str:
-#     h = int(seconds // 3600)
-#     m = int((seconds % 3600) // 60)
-#     s = int(seconds % 60)
-#     ms = int((seconds - int(seconds)) * 1000)
-#     return f"{h:02}:{m:02}:{s:02},{ms:03}"
+    Args:
+        audio_path (Path): 音訊檔路徑（.mp3）
+        cc_converter: OpenCC 物件（可選）用來簡轉繁或繁轉簡
+        output_dir (Path, optional): 輸出字幕的資料夾，預設為專案中的 'subtitles'
+        model_size (str): Whisper 模型大小，例如 base, small, medium, large
 
-# 1. 取得專案根目錄（假設和你前面一樣）
-SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
+    Returns:
+        Path: 儲存好的字幕檔案路徑
+    """
+    print(f"🎤 使用 Whisper 模型轉錄音訊：{audio_path.name}")
 
-# 2. 定義字幕資料夾
-subtitle_folder = Path(SCRIPT_DIR) / "subtitles"
-subtitle_folder.mkdir(parents=True, exist_ok=True)  # 確保存在
+    # 1. 載入模型
+    try:
+        model = whisper.load_model(model_size)
+    except Exception as e:
+        print(f"❌ Whisper 模型載入失敗：{e}")
+        sys.exit(1)
 
-# 3. 產生字幕檔完整路徑，副檔名改成 .srt
-srt_path = subtitle_folder / audio_path.with_suffix(".srt").name
+    # 2. 執行轉錄
+    try:
+        result = model.transcribe(str(audio_path))
+    except Exception as e:
+        print(f"❌ 轉錄失敗：{e}")
+        sys.exit(1)
 
-print(srt_path)
+    # 3. 準備輸出資料夾與檔案路徑
+    script_dir = Path(__file__).resolve().parent
+    subtitle_folder = output_dir or (script_dir / "subtitles")
+    subtitle_folder.mkdir(parents=True, exist_ok=True)
+    srt_path = subtitle_folder / audio_path.with_suffix(".srt").name
 
-# 4. 寫入字幕檔案
-with open(srt_path, "w", encoding="utf-8") as f:
-    for i, seg in enumerate(result["segments"], start=1):
-        # start = format_timestamp(seg["start"])
-        # end = format_timestamp(seg["end"])
-        text = cc.convert(seg["text"].strip())
-        # f.write(f"{i}\n{start} --> {end}\n{text}\n\n")
-        f.write(text + "\n")
-print(f"✅ Whisper 完成！字幕儲存為：{srt_path.name}")
+    # 4. 將字幕寫入檔案（純文字模式）
+    with open(srt_path, "w", encoding="utf-8") as f:
+        for i, seg in enumerate(result["segments"], start=1):
+            text = seg["text"].strip()
+            if cc_converter:
+                text = cc_converter.convert(text)
+            f.write(text + "\n")
+
+    print(f"✅ Whisper 完成！字幕儲存為：{srt_path.name}")
+    return srt_path
