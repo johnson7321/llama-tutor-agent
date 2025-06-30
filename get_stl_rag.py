@@ -9,6 +9,7 @@ from langchain.text_splitter import RecursiveCharacterTextSplitter
 from youtube_transcript_api import YouTubeTranscriptApi, NoTranscriptFound, TranscriptsDisabled
 import re
 import prompt
+import shutil
 
 # ------------------ 設定 ------------------
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -21,6 +22,7 @@ def extract_youtube_id(url):
     return match.group(1) if match else None
 
 url = input("請輸入 YouTube 網址：")
+# url = "https://www.youtube.com/watch?v=TSfTqRCy4rc"
 video_id = extract_youtube_id(url)
 
 if not video_id:
@@ -33,7 +35,9 @@ try:
         video_id, languages=['zh-TW', 'zh-Hant', 'zh-Hans', 'zh', 'en']
     )
     subtitles = [entry["text"] for entry in transcript]
+    print(subtitles)
     full_text = "\n".join(subtitles)
+    print("\n\nfull_text:"+full_text)
     yt_doc = Document(page_content=full_text, metadata={"source": f"YouTube_{video_id}"})
     documents = [yt_doc]
 except NoTranscriptFound:
@@ -49,15 +53,19 @@ except Exception as e:
 # ------------------ 建立向量資料庫 ------------------
 # 顯示字幕預覽（前20行）
 subtitles = [entry["text"] for entry in transcript]
-print("\n📝 字幕預覽（前20行）：")
-for i, line in enumerate(subtitles[:20]):
-    print(f"{i+1:02d}. {line}")
+#print("\n📝 字幕預覽（前20行）：")
+# for i, line in enumerate(subtitles[:20]):
+#     print(f"{i+1:02d}. {line}")
 
 # 詢問是否繼續
 choice = input("\n是否使用這些字幕建立知識庫？(y/n): ").strip().lower()
 if choice != "y":
     print("❌ 已取消建立向量資料庫")
     exit()
+    
+# 建立向量資料庫前，清空舊資料庫
+if os.path.exists(DB_DIR):
+    shutil.rmtree(DB_DIR)
 
 # ✅ 若確認，建立文件與向量資料庫
 full_text = "\n".join(subtitles)

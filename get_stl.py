@@ -54,18 +54,17 @@ def get_video_title(url: str) -> str:
         sys.exit(1)
         
 # ✅ 嘗試擷取 YouTube 字幕        
-def try_download_youtube_subtitle(video_id: str, cc_converter=None,srt_path: Path = None) -> bool:
+def try_download_youtube_subtitle(video_id: str, cc_converter=None, srt_path: Path = None) -> str:
     """
     嘗試下載 YouTube 原生字幕，儲存為 .srt 檔案
 
     Args:
         video_id (str): YouTube 影片 ID
-        video_title (str): 影片標題（用來命名檔案）
-        output_dir (Path): 要儲存字幕的資料夾
         cc_converter: 轉換簡繁體用的物件（例如 OpenCC），可為 None 表示不轉換
+        srt_path (Path): 字幕檔名（不含資料夾）
 
     Returns:
-        bool: 若成功下載字幕並儲存，回傳 True；否則回傳 False
+        str: 字幕內容（若失敗則回傳空字串）
     """
     try:
         print("📋 嘗試取得 YouTube 原字幕...")
@@ -76,24 +75,29 @@ def try_download_youtube_subtitle(video_id: str, cc_converter=None,srt_path: Pat
         )
 
         script_dir = Path(__file__).resolve().parent
-
         subtitle_folder = script_dir / "subtitles"
         subtitle_folder.mkdir(parents=True, exist_ok=True)
         srt_path = subtitle_folder / srt_path
-        
+
+        lines = []
         with open(srt_path, "w", encoding="utf-8") as f:
-            for i, entry in enumerate(transcript, start=1):
+            for entry in transcript:
                 text = entry["text"].strip()
                 if cc_converter:
                     text = cc_converter.convert(text)
-                full_text = f.write(text + "\n")
+                lines.append(text)
+                f.write(text + "\n")
 
         print(f"✅ 已使用 YouTube 字幕並輸出：{srt_path.name}")
-        return full_text
+        return "\n".join(lines)
 
     except (NoTranscriptFound, TranscriptsDisabled):
         print("⚠️ 沒有原字幕，改用 Whisper 處理")
-        return False
+        return ""
+    except Exception as e:
+        print(f"❌ 取得字幕時發生錯誤：{e}")
+        return ""
+    
 def download_audio_if_needed(video_title: str, url: str, ffmpeg_path: str, output_dir: Path = None) -> Path:
     """
     檢查並下載 YouTube 音訊檔（mp3 格式），儲存在指定資料夾
@@ -140,7 +144,7 @@ def download_audio_if_needed(video_title: str, url: str, ffmpeg_path: str, outpu
 
     return audio_path
 # ✅ Whisper 辨識
-def transcribe_audio_to_srt(audio_path: Path, cc_converter=None, output_dir: Path = None, model_size: str = "base") -> Path:
+def transcribe_audio_to_txt(audio_path: Path, cc_converter=None, output_dir: Path = None, model_size: str = "base") -> Path:
     """
     使用 Whisper 轉錄音訊並輸出為字幕 .srt 檔案（純文字）
 
@@ -173,7 +177,7 @@ def transcribe_audio_to_srt(audio_path: Path, cc_converter=None, output_dir: Pat
     script_dir = Path(__file__).resolve().parent
     subtitle_folder = output_dir or (script_dir / "subtitles")
     subtitle_folder.mkdir(parents=True, exist_ok=True)
-    srt_path = subtitle_folder / audio_path.with_suffix(".srt").name
+    srt_path = subtitle_folder / audio_path.with_suffix(".txt").name
 
     # 4. 將字幕寫入檔案（純文字模式）
     with open(srt_path, "w", encoding="utf-8") as f:
