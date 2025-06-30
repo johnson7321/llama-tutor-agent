@@ -95,7 +95,7 @@ MODEL_NAME = 'llama3.1:latest'
 
 build_vct_db.build_db_once(str(srt_content)) # 建立向量資料庫
 
-build_vct_db.rag("50字講述這支影片的主題",messages,str(srt_content)) # 測試 RAG 功能
+#build_vct_db.rag("50字講述這支影片的主題",messages,str(srt_content)) # 測試 RAG 功能
 
 print("🎥 字幕系統已啟動，輸入 quit,exit,bye 離開")
 
